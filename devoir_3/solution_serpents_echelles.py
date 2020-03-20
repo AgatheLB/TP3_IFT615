@@ -22,20 +22,18 @@ import numpy as np
 #
 # retour: Un tableau Numpy 1D de float donnant la valeur de chaque état du mdp, selon leur ordre dans mdp.etats.
 ###
+
 def calcul_valeur(mdp, plan):
     A = np.zeros((len(mdp.etats), len(mdp.etats)))
 
-    b = mdp.recompenses.copy()
-    for s, action in plan.items():
-        transitions = mdp.modele_transition[(s, action)]
+    b = mdp.recompenses.copy() * -1
+    for s_row, action in plan.items():
+        transitions = mdp.modele_transition[(s_row, action)]
         for t in transitions:
-            A[s, t[0]] = mdp.recompenses[t[0]] + mdp.escompte * t[1] * A[s, t[0]]
-
-    # A = np.linalg.inv(A)
-    v = A.dot(b)
-    # v = np.linalg.solve(A, b)
-    return v
-    # return np.zeros(len(mdp.etats))
+            A[s_row, t[0]] = mdp.escompte * t[1]
+        A[s_row, s_row] -= 1
+    A = np.linalg.inv(A)
+    return A.dot(b)
 
 
 #####
