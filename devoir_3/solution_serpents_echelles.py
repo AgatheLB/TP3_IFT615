@@ -8,6 +8,7 @@ from pdb import set_trace as dbg  # Utiliser dbg() pour faire un break dans votr
 
 import numpy as np
 
+
 #################################
 # Solution serpents et échelles #
 #################################
@@ -20,10 +21,21 @@ import numpy as np
 # plan: Un plan donnant l'action associée à chaque état possible (dictionnaire).
 #
 # retour: Un tableau Numpy 1D de float donnant la valeur de chaque état du mdp, selon leur ordre dans mdp.etats.
-### 
+###
 def calcul_valeur(mdp, plan):
-    #TODO: .~= À COMPLÉTER =~.
-    return np.zeros((len(mdp.etats),))
+    A = np.zeros((len(mdp.etats), len(mdp.etats)))
+
+    b = mdp.recompenses.copy()
+    for s, action in plan.items():
+        transitions = mdp.modele_transition[(s, action)]
+        for t in transitions:
+            A[s, t[0]] = mdp.recompenses[t[0]] + mdp.escompte * t[1] * A[s, t[0]]
+
+    # A = np.linalg.inv(A)
+    v = A.dot(b)
+    # v = np.linalg.solve(A, b)
+    return v
+    # return np.zeros(len(mdp.etats))
 
 
 #####
@@ -36,8 +48,23 @@ def calcul_valeur(mdp, plan):
 # retour: Un plan (dictionnaire) qui maximise la valeur future espérée, en fonction du tableau "valeur".
 ### 
 def calcul_plan(mdp, valeur):
-    #TODO: .~= À COMPLÉTER =~.
-    return dict( [ (s,mdp.actions[s][0]) for s in mdp.etats] )
+    plan = dict()
+    plan_values = dict()
+    for s in mdp.etats:
+        for a in mdp.actions[0]:
+            val_next_s = mdp.recompenses[s]
+            for t in mdp.modele_transition[(s, a)]:
+                val_next_s += mdp.escompte * t[1] * valeur[t[0]]
+            if round(val_next_s, 2) >= round(valeur[s], 2):
+                if plan.get(s) is None:
+                    plan[s] = a
+                    plan_values[s] = val_next_s
+                else:
+                    if val_next_s > plan_values[s]:
+                        plan[s] = a
+                        plan_values[s] = val_next_s
+    return plan
+
 
 #####
 # iteration_politiques: Algorithme d'itération par politiques, qui retourne le plan optimal et sa valeur.
@@ -46,6 +73,6 @@ def calcul_plan(mdp, valeur):
 #
 # retour: Un tuple contenant le plan optimal et son tableau de valeurs.
 ### 
-def iteration_politiques(mdp,plan_initial):
-    #TODO: .~= À COMPLÉTER =~.
-    return plan_initial, calcul_valeur(mdp,plan_initial)
+def iteration_politiques(mdp, plan_initial):
+
+    return plan_initial, calcul_valeur(mdp, plan_initial)
