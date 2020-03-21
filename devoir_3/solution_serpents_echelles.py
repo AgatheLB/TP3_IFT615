@@ -72,5 +72,14 @@ def calcul_plan(mdp, valeur):
 # retour: Un tuple contenant le plan optimal et son tableau de valeurs.
 ### 
 def iteration_politiques(mdp, plan_initial):
+    plan = plan_initial
+    save_plan = dict()
+    for i in range(len(plan_initial)):
+        save_plan[i] = ''
 
-    return plan_initial, calcul_valeur(mdp, plan_initial)
+    while not plan == save_plan:
+        save_plan = plan
+        valeurs = calcul_valeur(mdp, plan)
+        plan = calcul_plan(mdp, valeurs)
+
+    return plan, calcul_valeur(mdp, plan)
